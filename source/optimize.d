@@ -8,6 +8,28 @@ import std.array;
 import std.range;
 import std.conv;
 
+alias Counts = size_t[string];
+
+Counts count_instructions(BrainfuckInstruction[] insts) {
+    Counts counts;
+
+    foreach(inst; insts) {
+        counts[typeid(inst).toString]++;
+        if(auto loop = cast(Loop) inst) {
+            auto inner_counts = count_instructions(loop.insts);
+            add_counts(counts, inner_counts);
+        }
+    }
+
+    return counts;
+}
+
+void add_counts(Counts dst, Counts src) {
+    foreach(k, v; src) {
+        dst[k] += v;
+    }
+}
+
 BrainfuckInstruction[] clear_opt(BrainfuckInstruction[] insts) {
     return insts.map!(inst => delegate BrainfuckInstruction() {
         if(auto loop = cast(Loop) inst) {

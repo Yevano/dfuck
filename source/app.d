@@ -17,6 +17,8 @@ import std.regex;
 import std.string;
 import std.conv;
 import std.process;
+import std.array;
+import std.algorithm.iteration;
 
 struct Options {
     @Option("help", "h")
@@ -67,21 +69,35 @@ int main(string[] args) {
 
     auto code = readText(options.source);
 
-    writeln("Sanitizing code...");
+    std.stdio.write("Sanitizing code... ");
+    stdout.flush();
     auto re = regex(r"[^(\[|\]|\+|\-|>|<|\.|,)]", "g");
     auto sanitized_code = replaceAll(code, re, "");
-    writeln("done");
+    writeln("done\n");
+
+    BrainfuckInstruction[] insts;
 
     writeln("Parsing instructions...");
-    auto insts = parse_brainfuck(sanitized_code);
-    writeln("done");
-    writeln("Clear optimization...");
-    insts = clear_opt(insts);
-    writeln("done");
-    writeln("BalancedLoop optimization...");
-    insts = balanced_opt(insts);
-    writeln("done");
+    stdout.flush();
+    insts = parse_brainfuck(sanitized_code);
+    auto counts0 = count_instructions(insts);
+    write_inst_count(counts0);
+    writeln();
 
+    writeln("Clear optimization...");
+    stdout.flush();
+    insts = clear_opt(insts);
+    Counts counts1 = count_instructions(insts);
+    write_inst_count(counts1);
+    writefln("Removed %s instructions.\n", get_total_insts(counts0) - get_total_insts(counts1));
+    
+    writeln("BalancedLoop optimization...");
+    stdout.flush();
+    insts = balanced_opt(insts);
+    Counts counts2 = count_instructions(insts);
+    write_inst_count(counts1);
+    writefln("Removed %s instructions.\n", get_total_insts(counts1) - get_total_insts(counts2));
+    
     stdout.flush();
 
     char[] file_out;
@@ -136,4 +152,14 @@ int main(int argc, const char* argv[]) {\n";
     }
 
     return 0;
+}
+
+void write_inst_count(Counts counts) {
+    foreach(k, v; counts) {
+        writefln("%s: %s", k, v);
+    }
+}
+
+uint get_total_insts(Counts counts) {
+    return counts.byValue.sum();
 }
