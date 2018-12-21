@@ -24,7 +24,7 @@ struct Options {
     OptionFlag help;
 
     @Option("only-compile", "oc")
-    @Help("Compile a branfuck file and generate an executable.")
+    @Help("Compile a brainfuck file and generate an executable.")
     OptionFlag only_compile;
 
     @Option("compile-run", "cr")
