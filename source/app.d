@@ -40,8 +40,8 @@ struct Options {
     string intermediate;
 
     @Option("compiler", "c")
-    @Help("The compiler to user. Must be one of: gcc. Defaults to gcc.")
-    string compiler;
+    @Help("The compiler to use. Must be one of: gcc. Defaults to gcc.")
+    string compiler = "gcc";
 
     @Argument("source")
     @Help("The brainfuck file to be run.")
