@@ -1,0 +1,11 @@
+{
+	"name": "dfuck",
+	"authors": [
+		"James King"
+	],
+	"description": "An optimized brainfuck interpreter and compiler.",
+	"license": "proprietary",
+  "dependencies": {
+    "darg": "~>0.1.0"
+  }
+}

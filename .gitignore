@@ -1,0 +1,19 @@
+# D Labguage and DUB specific files
+.dub
+docs.json
+__dummy.html
+docs/
+dfuck.so
+dfuck.dylib
+dfuck.dll
+dfuck.a
+dfuck.lib
+dfuck-test-*
+*.exe
+*.o
+*.obj
+*.lst
+
+.vs
+darg-0.1.0
+*.sln
