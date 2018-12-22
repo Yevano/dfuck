@@ -4,6 +4,7 @@ import optimize;
 import brainfuck;
 import input_stream;
 import parse;
+import cfg;
 
 import darg;
 
@@ -44,6 +45,10 @@ struct Options {
     @Option("compiler", "c")
     @Help("The compiler to use. Must be one of: gcc. Defaults to gcc.")
     string compiler = "gcc";
+
+    @Option("graph", "g")
+    @Help("Specifies a file to output the CFG to.")
+    string graph;
 
     @Argument("source")
     @Help("The brainfuck file to be run.")
@@ -100,6 +105,9 @@ int main(string[] args) {
     
     stdout.flush();
 
+    auto parser = new IRParser(insts);
+    auto cfg = parser.parse;
+
     char[] file_out;
 
     if(options.intermediate != "") {
@@ -107,6 +115,39 @@ int main(string[] args) {
             file_out ~= inst.to_string() ~ "\n";
         }
         std.file.write(options.intermediate, file_out);
+    }
+
+    if(options.graph != "") {
+        file_out.length = 0;
+        file_out ~= "digraph G {\n";
+
+        bool[CFG] cfgs;
+        collect_nodes(cfg, cfgs);
+
+        foreach(cfg, _; cfgs) {
+            file_out ~= "    _%s [label=\"%s\"];\n".format(cast(void*) cfg, typeid(cfg).toString);
+        }
+        
+        foreach(cfg, _; cfgs) {
+            if(auto basic_cfg = cast(BasicBlockCFG) cfg) {
+                auto basic_ptr = cast(void*) basic_cfg;
+                auto next_ptr = cast(void*) basic_cfg.outgoing;
+                file_out ~= "    _%s -> _%s;\n".format(basic_ptr, next_ptr);
+            } else if(auto if_cfg = cast(IfCFG) cfg) {
+                auto if_ptr = cast(void*) if_cfg;
+                auto true_ptr = cast(void*) if_cfg.outgoing_true;
+                auto false_ptr = cast(void*) if_cfg.outgoing_false;
+                file_out ~= "    _%s -> _%s;\n".format(if_ptr, true_ptr);
+                file_out ~= "    _%s -> _%s;\n".format(if_ptr, false_ptr);
+            } else if(auto move_cfg = cast(MoveCFG) cfg) {
+                auto move_ptr = cast(void*) move_cfg;
+                auto next_ptr = cast(void*) move_cfg.outgoing;
+                file_out ~= "    _%s -> _%s;\n".format(move_ptr, next_ptr);
+            }
+        }
+
+        file_out ~= "}";
+        std.file.write(options.graph, file_out);
     }
 
     if(options.compile_run == OptionFlag.yes || options.only_compile == OptionFlag.yes) {
@@ -162,4 +203,18 @@ void write_inst_count(Counts counts) {
 
 uint get_total_insts(Counts counts) {
     return counts.byValue.sum();
+}
+
+void collect_nodes(CFG cfg, ref bool[CFG] collected) {
+    if(cfg in collected || cfg is null) return;
+    collected[cfg] = true;
+
+    if(auto basic_cfg = cast(BasicBlockCFG) cfg) {
+        collect_nodes(basic_cfg.outgoing, collected);
+    } else if(auto if_cfg = cast(IfCFG) cfg) {
+        collect_nodes(if_cfg.outgoing_true, collected);
+        collect_nodes(if_cfg.outgoing_false, collected);
+    } else if(auto move_cfg = cast(MoveCFG) cfg) {
+        collect_nodes(move_cfg.outgoing, collected);
+    }
 }
