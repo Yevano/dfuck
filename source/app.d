@@ -119,13 +119,27 @@ int main(string[] args) {
 
     if(options.graph != "") {
         file_out.length = 0;
-        file_out ~= "digraph G {\n";
+        file_out ~= "digraph {\n";
 
         bool[CFG] cfgs;
         collect_nodes(cfg, cfgs);
 
+        file_out ~= "    _%s [color=red];\n".format(cast(void*) cfg);
         foreach(cfg, _; cfgs) {
-            file_out ~= "    _%s [label=\"%s\"];\n".format(cast(void*) cfg, typeid(cfg).toString);
+            if(auto basic_cfg = cast(BasicBlockCFG) cfg) {
+                char[] label = cast(char[]) "%s\\n".format(typeid(cfg).toString);
+                
+                foreach(inst; basic_cfg.insts) {
+                    label ~= "%s\\n".format(inst.to_string);
+                }
+
+                file_out ~= "    _%s [label=\"%s\"];\n".format(cast(void*) cfg, cast(string) label);
+            } else if(auto move_cfg = cast(MoveCFG) cfg) {
+                char[] label = cast(char[]) "%s\\n%s".format(typeid(cfg).toString, move_cfg.inst.to_string(0));
+                file_out ~= "    _%s [label=\"%s\"];\n".format(cast(void*) cfg, cast(string) label);
+            } else {
+                file_out ~= "    _%s [label=\"%s\"];\n".format(cast(void*) cfg, typeid(cfg).toString);
+            }
         }
         
         foreach(cfg, _; cfgs) {
@@ -137,8 +151,8 @@ int main(string[] args) {
                 auto if_ptr = cast(void*) if_cfg;
                 auto true_ptr = cast(void*) if_cfg.outgoing_true;
                 auto false_ptr = cast(void*) if_cfg.outgoing_false;
-                file_out ~= "    _%s -> _%s;\n".format(if_ptr, true_ptr);
-                file_out ~= "    _%s -> _%s;\n".format(if_ptr, false_ptr);
+                file_out ~= "    _%s -> _%s [label=\"T\"];\n".format(if_ptr, true_ptr);
+                file_out ~= "    _%s -> _%s [label=\"F\"];\n".format(if_ptr, false_ptr);
             } else if(auto move_cfg = cast(MoveCFG) cfg) {
                 auto move_ptr = cast(void*) move_cfg;
                 auto next_ptr = cast(void*) move_cfg.outgoing;
@@ -187,8 +201,12 @@ int main(int argc, const char* argv[]) {\n";
     if(options.interpret == OptionFlag.yes) {
         auto vm = new VM();
 
-        foreach(inst; insts) {
+        /*foreach(inst; insts) {
             inst.run(vm);
+        }*/
+
+        while(cfg !is null) {
+            cfg = cfg.run(vm);
         }
     }
 

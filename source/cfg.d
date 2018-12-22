@@ -5,7 +5,9 @@ import brainfuck;
 import std.algorithm.iteration;
 import std.array;
 
-abstract class CFG { }
+abstract class CFG {
+    abstract CFG run(VM);
+}
 
 class BasicBlockCFG : CFG {
     CFG outgoing;
@@ -14,11 +16,27 @@ class BasicBlockCFG : CFG {
     this(BrainfuckInstruction[] insts) {
         this.insts = insts;
     }
+
+    override CFG run(VM vm) {
+        foreach(inst; insts) {
+            inst.run(vm);
+        }
+
+        return outgoing;
+    }
 }
 
 class IfCFG : CFG {
     CFG outgoing_true;
     CFG outgoing_false;
+
+    override CFG run(VM vm) {
+        if(vm.tape[vm.pointer] != 0) {
+            return outgoing_true;
+        } else {
+            return outgoing_false;
+        }
+    }
 }
 
 class MoveCFG : CFG {
@@ -27,6 +45,11 @@ class MoveCFG : CFG {
 
     this(MoveLoop inst) {
         this.inst = inst;
+    }
+
+    override CFG run(VM vm) {
+        inst.run(vm);
+        return outgoing;
     }
 }
 
@@ -137,10 +160,6 @@ class IRParser {
                     }
                 } else if(auto move_cfg = cast(MoveCFG) current) {
                     current = move_cfg.outgoing;
-                    if(current is null) {
-                        move_cfg.outgoing = if_cfg;
-                        break;
-                    }
                 }
             }
 
@@ -154,7 +173,7 @@ class IRParser {
 
             auto next_instruction = parse;
             if_cfg.outgoing_false = next_instruction;
-            move_cfg.outgoing = next_instruction;
+            move_cfg.outgoing = if_cfg;
             return if_cfg;
         }
 
