@@ -188,3 +188,85 @@ class MoveLoop : BrainfuckInstruction {
         return "    ".replicate(depth) ~ "MoveLoop " ~ modifications.to!string;
     }
 }
+
+class If : BrainfuckInstruction {
+    BrainfuckInstruction[] insts;
+
+    this(BrainfuckInstruction[] insts) {
+        this.insts = insts;
+    }
+
+    override void run(VM vm) {
+        if(vm.tape[vm.pointer] != 0) {
+            foreach(inst; insts) {
+                inst.run(vm);
+            }
+        }
+    }
+
+    override string compile(uint depth) {
+        char[] s;
+        s ~= "%sif(*p) {\n".format("    ".replicate(depth));
+
+        foreach(inst; insts) {
+            s ~= "%s\n".format(inst.compile(depth + 1));
+        }
+
+        s ~= "%s}".format("    ".replicate(depth));
+        return cast(string) s;
+    }
+
+    override string to_string(uint depth) {
+        char[] s;
+        s ~= "%sIf {\n".format("    ".replicate(depth));
+
+        foreach(inst; insts) {
+            s ~= "%s\n".format(inst.to_string(depth + 1));
+        }
+
+        s ~= "%s}".format("    ".replicate(depth));
+        return cast(string) s;
+    }
+}
+
+class UnrolledLoop : BrainfuckInstruction {
+    uint count;
+    BrainfuckInstruction[] insts;
+
+    this(uint count, BrainfuckInstruction[] insts) {
+        this.count = count;
+        this.insts = insts;
+    }
+
+    override void run(VM vm) {
+        for(uint i = 0; i < count; i++) {
+            foreach(inst; insts) {
+                inst.run(vm);
+            }
+        }
+    }
+
+    override string compile(uint depth) {
+        char[] s;
+
+        for(uint i = 0; i < count; i++) {
+            foreach(inst; insts) {
+                s ~= "%s\n".format(inst.compile(depth));
+            }
+        }
+
+        return cast(string) s;
+    }
+
+    override string to_string(uint depth) {
+        char[] s;
+        s ~= "%sUnrolledLoop(%s) {\n".format("    ".replicate(depth), count);
+
+        foreach(inst; insts) {
+            s ~= inst.to_string(depth + 1) ~ "\n";
+        }
+
+        s ~= "    ".replicate(depth) ~ "}";
+        return cast(string) s;
+    }
+}
