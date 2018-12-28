@@ -40,11 +40,11 @@ class Modify : BrainfuckInstruction {
     }
 
     override string compile(uint depth) {
-        return "    ".replicate(depth) ~ "*p += %s;".format(amt);
+        return "%s*p += %s;".format("    ".replicate(depth), amt);
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "Modify(" ~ amt.to!string ~ ")";
+        return "%sModify(%s)".format("    ".replicate(depth), amt.to!string);
     }
 }
 
@@ -60,11 +60,11 @@ class Select : BrainfuckInstruction {
     }
 
     override string compile(uint depth) {
-        return "    ".replicate(depth) ~ "p += %s;".format(amt);
+        return "%sp += %s;".format("    ".replicate(depth), amt);
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "Select(" ~ amt.to!string ~ ")";
+        return "%sSelect(%s)".format("    ".replicate(depth), amt.to!string);
     }
 }
 
@@ -85,25 +85,25 @@ class Loop : BrainfuckInstruction {
 
     override string compile(uint depth) {
         char[] s;
-        s ~= "    ".replicate(depth) ~ "while(*p) {\n";
+        s ~= "%swhile(*p) {\n".format("    ".replicate(depth));
 
         foreach(inst; insts) {
-            s ~= inst.compile(depth + 1) ~ "\n";
+            s ~= "%s\n".format(inst.compile(depth + 1));
         }
 
-        s ~= "    ".replicate(depth) ~ "}";
+        s ~= "%s}".format("    ".replicate(depth));
         return cast(string) s;
     }
 
     override string to_string(uint depth) {
         char[] s;
-        s ~= "    ".replicate(depth) ~ "Loop {\n";
+        s ~= "%sLoop {\n".format("    ".replicate(depth));
 
         foreach(inst; insts) {
-            s ~= inst.to_string(depth + 1) ~ "\n";
+            s ~= "%s\n".format(inst.to_string(depth + 1));
         }
 
-        s ~= "    ".replicate(depth) ~ "}";
+        s ~= "%s}".format("    ".replicate(depth));
         return cast(string) s;
     }
 }
@@ -116,26 +116,26 @@ class Input : BrainfuckInstruction {
     }
 
     override string compile(uint depth) {
-        return "    ".replicate(depth) ~ "*p = getchar();";
+        return "%s*p = getchar();".format("    ".replicate(depth));
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "Input";
+        return "%sInput".format("    ".replicate(depth));
     }
 }
 
 class Output : BrainfuckInstruction {
     override void run(VM vm) {
         write(cast(char) vm.tape[vm.pointer]);
-        stdout.flush();
+        stdout.flush;
     }
 
     override string compile(uint depth) {
-        return "    ".replicate(depth) ~ "putchar(*p); fflush(stdout);";
+        return "%sputchar(*p); fflush(stdout);".format("    ".replicate(depth));
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "Output";
+        return "%sOutput".format("    ".replicate(depth));
     }
 }
 
@@ -145,11 +145,11 @@ class Clear : BrainfuckInstruction {
     }
 
     override string compile(uint depth) {
-        return "    ".replicate(depth) ~ "*p = 0;";
+        return "%s*p = 0;".format("    ".replicate(depth));
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "Clear";
+        return "%sClear".format("    ".replicate(depth));
     }
 }
 
@@ -173,19 +173,19 @@ class MoveLoop : BrainfuckInstruction {
 
     override string compile(uint depth) {
         char[] s;
-        s ~= "    ".replicate(depth) ~ "if(*p) {\n";
+        s ~= "%sif(*p) {\n".format("    ".replicate(depth));
 
         foreach(pointer, modify; modifications) {
-            s ~= "    ".replicate(depth + 1) ~ "*(p + %s) += %s * (*p);\n".format(pointer, modify);
+            s ~= "%s*(p + %s) += %s * (*p);\n".format("    ".replicate(depth + 1), pointer, modify);
         }
 
-        s ~= "    ".replicate(depth + 1) ~ "*p = 0;\n";
-        s ~= "    ".replicate(depth) ~ "}";
+        s ~= "%s*p = 0;\n".format("    ".replicate(depth + 1));
+        s ~= "%s}".format("    ".replicate(depth));
         return cast(string) s;
     }
 
     override string to_string(uint depth) {
-        return "    ".replicate(depth) ~ "MoveLoop " ~ modifications.to!string;
+        return "%sMoveLoop %s".format("    ".replicate(depth), modifications.to!string);
     }
 }
 
@@ -263,10 +263,10 @@ class UnrolledLoop : BrainfuckInstruction {
         s ~= "%sUnrolledLoop(%s) {\n".format("    ".replicate(depth), count);
 
         foreach(inst; insts) {
-            s ~= inst.to_string(depth + 1) ~ "\n";
+            s ~= "%s\n".format(inst.to_string(depth + 1));
         }
 
-        s ~= "    ".replicate(depth) ~ "}";
+        s ~= "%s}".format("    ".replicate(depth));
         return cast(string) s;
     }
 }

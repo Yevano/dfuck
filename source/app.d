@@ -75,7 +75,7 @@ int main(string[] args) {
     auto code = readText(options.source);
 
     std.stdio.write("Sanitizing code... ");
-    stdout.flush();
+    stdout.flush;
     auto re = regex(r"[^(\[|\]|\+|\-|>|<|\.|,)]", "g");
     auto sanitized_code = replaceAll(code, re, "");
     writeln("done\n");
@@ -83,41 +83,41 @@ int main(string[] args) {
     BrainfuckInstruction[] insts;
 
     writeln("Parsing instructions...");
-    stdout.flush();
+    stdout.flush;
     insts = parse_brainfuck(sanitized_code);
     auto counts0 = count_instructions(insts);
     write_inst_count(counts0);
-    writeln();
+    writeln;
 
     writeln("Clear optimization...");
-    stdout.flush();
+    stdout.flush;
     insts = clear_opt(insts);
     Counts counts1 = count_instructions(insts);
     write_inst_count(counts1);
     writefln("Removed %s instructions.\n", get_total_insts(counts0) - get_total_insts(counts1));
     
     writeln("UnrolledLoop optimization...");
-    stdout.flush();
+    stdout.flush;
     insts = unroll_opt(insts, true);
     Counts counts2 = count_instructions(insts);
     write_inst_count(counts2);
     writeln;
 
     writeln("If optimization...");
-    stdout.flush();
+    stdout.flush;
     insts = if_opt(insts);
     Counts counts3 = count_instructions(insts);
     write_inst_count(counts3);
     writeln;
 
     writeln("BalancedLoop optimization...");
-    stdout.flush();
+    stdout.flush;
     insts = balanced_opt(insts);
     Counts counts4 = count_instructions(insts);
     write_inst_count(counts4);
     writefln("Removed %s instructions.\n\n", get_total_insts(counts3) - get_total_insts(counts4));
     
-    stdout.flush();
+    stdout.flush;
 
     auto parser = new IRParser(insts);
     auto cfg = parser.parse;
@@ -126,7 +126,7 @@ int main(string[] args) {
 
     if(options.intermediate != "") {
         foreach(inst; insts) {
-            file_out ~= inst.to_string() ~ "\n";
+            file_out ~= inst.to_string ~ "\n";
         }
         std.file.write(options.intermediate, file_out);
     }
@@ -204,7 +204,7 @@ int main(int argc, const char* argv[]) {\n";
             case "gcc":
                 auto com = "gcc -O3 dfuck_temp.c -o dfuck_temp.exe";
                 writefln("Running %s", com);
-                stdout.flush();
+                stdout.flush;
                 executeShell(com);
                 break;
             default:
@@ -220,14 +220,10 @@ int main(int argc, const char* argv[]) {\n";
     }
 
     if(options.interpret == OptionFlag.yes) {
-        auto vm = new VM();
+        auto vm = new VM;
 
-        /*while(cfg !is null) {
+        while(cfg !is null) {
             cfg = cfg.run(vm);
-        }*/
-
-        foreach(inst; insts) {
-            inst.run(vm);
         }
     }
 
@@ -241,7 +237,7 @@ void write_inst_count(Counts counts) {
 }
 
 uint get_total_insts(Counts counts) {
-    return counts.byValue.sum();
+    return counts.byValue.sum;
 }
 
 void collect_nodes(CFG cfg, ref bool[CFG] collected) {

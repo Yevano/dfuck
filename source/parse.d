@@ -10,7 +10,7 @@ BrainfuckInstruction[] parse_brainfuck(string code) {
 
 BrainfuckInstruction[] parse_block(InputStream!(immutable char) stream, char delimiter) {
     BrainfuckInstruction[] insts;
-    char first_char = stream.read();
+    char first_char = stream.read;
 
     while(first_char != delimiter) {
         switch(first_char) {
@@ -18,10 +18,10 @@ BrainfuckInstruction[] parse_block(InputStream!(immutable char) stream, char del
             case '-':
                 auto amt = first_char == '+' ? 1 : -1;
 
-                auto c = cast(char) stream.read();
+                auto c = cast(char) stream.read;
                 while(c == '+' || c == '-') {
                     amt += c == '+' ? 1 : -1;
-                    c = stream.read();
+                    c = stream.read;
                 }
 
                 insts ~= new Modify(amt);
@@ -31,10 +31,10 @@ BrainfuckInstruction[] parse_block(InputStream!(immutable char) stream, char del
             case '<':
                 auto amt = first_char == '>' ? 1 : -1;
 
-                auto c = cast(char) stream.read();
+                auto c = cast(char) stream.read;
                 while(c == '>' || c == '<') {
                     amt += c == '>' ? 1 : -1;
-                    c = stream.read();
+                    c = stream.read;
                 }
 
                 insts ~= new Select(amt);
@@ -44,16 +44,16 @@ BrainfuckInstruction[] parse_block(InputStream!(immutable char) stream, char del
                 insts ~= new Loop(parse_block(stream, ']'));
                 break;
             case ',':
-                insts ~= new Input();
+                insts ~= new Input;
                 break;
             case '.':
-                insts ~= new Output();
+                insts ~= new Output;
                 break;
             default:
                 break;
         }
 
-        first_char = stream.read();
+        first_char = stream.read;
     }
     return insts;
 }

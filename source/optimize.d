@@ -37,12 +37,12 @@ void add_counts(Counts dst, Counts src) {
 }
 
 BrainfuckInstruction[] clear_opt(BrainfuckInstruction[] insts) {
-    return insts.map!(inst => delegate BrainfuckInstruction() {
+    return insts.map!(delegate BrainfuckInstruction(inst) {
         if(auto loop = cast(Loop) inst) {
             auto loop_insts = loop.insts;
             if(loop_insts.length == 1) {
                 if(auto modify = cast(Modify) loop_insts[0]) {
-                    if(modify.amt == -1) return new Clear();
+                    if(modify.amt == -1) return new Clear;
                 }
             }
 
@@ -50,18 +50,18 @@ BrainfuckInstruction[] clear_opt(BrainfuckInstruction[] insts) {
         }
 
         return inst;
-    }()).array;
+    }).array;
 }
 
 BrainfuckInstruction[] balanced_opt(BrainfuckInstruction[] insts) {
-    return insts.map!(inst => delegate BrainfuckInstruction() {
+    return insts.map!(delegate BrainfuckInstruction(inst) {
         if(auto loop = cast(Loop) inst) {
             auto loop_insts = loop.insts;
             if(loop_insts.all!(loop_inst => (cast(Modify) loop_inst) || (cast(Select) loop_inst))) {
                 if(loop_insts
                     .filter!(loop_inst => cast(Select) loop_inst)
                     .map!(loop_inst => (cast(Select) loop_inst).amt)
-                    .sum() == 0) {
+                    .sum == 0) {
                     int[int] ms;
                     int pointer = 0;
                     
@@ -84,7 +84,7 @@ BrainfuckInstruction[] balanced_opt(BrainfuckInstruction[] insts) {
         }
 
         return inst;
-    }()).array;
+    }).array;
 }
 
 BrainfuckInstruction[] if_opt(BrainfuckInstruction[] insts) {
